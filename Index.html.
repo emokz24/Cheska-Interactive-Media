@@ -31,12 +31,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* Responsive Wrapper for Fullscreen API */
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1024px;
+            height: 700px;
+            display: flex;
+            flex-direction: column;
+            background: #cbd5e1;
+            border-radius: 32px;
         }
 
         .game-window {
-            width: 1024px;
-            height: 700px;
+            width: 100%;
+            height: 100%;
             background-color: var(--cream);
             border-radius: 32px;
             box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
@@ -46,6 +59,26 @@
             flex-direction: column;
             border: 4px solid var(--navy);
         }
+
+        /* Global Mobile Fullscreen Toggle Button */
+        .fullscreen-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            background: var(--navy);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Fredoka', cursive;
+            font-size: 14px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .fullscreen-btn:hover { background: #1e293b; }
 
         /* SCREENS ENGINE */
         .screen {
@@ -57,6 +90,7 @@
             left: 0;
             padding: 40px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
         .screen.active { display: flex; flex-direction: column; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
@@ -68,16 +102,16 @@
             color: white;
             text-align: center;
         }
-        #screen-reg h1 { font-family: 'Fredoka', cursive; font-size: 56px; color: var(--gold); text-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 5px; }
-        .reg-subtitle { font-size: 20px; color: #94a3b8; margin-bottom: 30px; font-weight: bold; }
-        .reg-form { background: rgba(255, 255, 255, 0.08); padding: 40px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.1); width: 480px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        #screen-reg h1 { font-family: 'Fredoka', cursive; font-size: 46px; color: var(--gold); text-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 5px; padding-right: 140px; }
+        .reg-subtitle { font-size: 18px; color: #94a3b8; margin-bottom: 30px; font-weight: bold; padding-right: 140px; }
+        .reg-form { background: rgba(255, 255, 255, 0.08); padding: 30px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.1); width: 100%; max-width: 480px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
         .reg-form input { width: 100%; padding: 16px; margin: 15px 0; border-radius: 12px; border: 2px solid #64748b; font-size: 18px; font-family: inherit; font-weight: bold; text-align: center; color: var(--navy); background: white; }
         .reg-form input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
         
         /* SCREEN 2: ADVENTURE MAP */
-        #screen-map { background: #bae6fd; overflow: hidden; position: relative; }
-        .map-header { text-align: center; z-index: 10; margin-bottom: 10px; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 16px; border: 2px solid var(--navy); }
-        .map-header h2 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 34px; }
+        #screen-map { background: #bae6fd; overflow: hidden; position: relative; padding: 20px; }
+        .map-header { text-align: center; z-index: 10; margin-bottom: 10px; background: rgba(255,255,255,0.8); padding: 12px; border-radius: 16px; border: 2px solid var(--navy); margin-right: 140px; }
+        .map-header h2 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 28px; }
         
         .map-container {
             flex-grow: 1;
@@ -87,6 +121,7 @@
             background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 100%);
             border-radius: 20px;
             border: 3px dashed var(--navy);
+            overflow: hidden;
         }
 
         .map-svg-layer {
@@ -102,162 +137,201 @@
         /* Map Interactive Nodes */
         .map-node {
             position: absolute;
-            width: 75px;
-            height: 75px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             background: #cbd5e1;
-            border: 5px solid #64748b;
+            border: 4px solid #64748b;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Fredoka', cursive;
-            font-size: 28px;
+            font-size: 24px;
             color: #64748b;
             z-index: 5;
             cursor: not-allowed;
-            box-shadow: 0 8px 0 #475569;
+            box-shadow: 0 6px 0 #475569;
             transition: all 0.2s ease;
         }
 
-        .map-node.unlocked { background: #38bdf8; border-color: var(--navy); color: white; box-shadow: 0 8px 0 #0369a1; cursor: pointer; animation: bounce 1.5s infinite alternate; }
-        .map-node.unlocked:hover { transform: translateY(-4px); box-shadow: 0 12px 0 #0369a1; }
-        .map-node.completed { background: var(--emerald); border-color: var(--navy); color: white; box-shadow: 0 8px 0 #047857; cursor: pointer; }
-        .map-node.completed:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #047857; }
+        .map-node.unlocked { background: #38bdf8; border-color: var(--navy); color: white; box-shadow: 0 6px 0 #0369a1; cursor: pointer; animation: bounce 1.5s infinite alternate; }
+        .map-node.unlocked:hover { transform: translateY(-4px); box-shadow: 0 10px 0 #0369a1; }
+        .map-node.completed { background: var(--emerald); border-color: var(--navy); color: white; box-shadow: 0 6px 0 #047857; cursor: pointer; }
         
-        .map-node-label { position: absolute; bottom: -42px; width: 170px; text-align: center; font-weight: 700; font-size: 13px; color: var(--navy); background: white; padding: 4px 8px; border-radius: 8px; border: 2px solid var(--navy); box-shadow: 0 4px 0 rgba(0,0,0,0.1); pointer-events: none;}
+        .map-node-label { position: absolute; bottom: -36px; width: 140px; text-align: center; font-weight: 700; font-size: 11px; color: var(--navy); background: white; padding: 2px 6px; border-radius: 8px; border: 2px solid var(--navy); box-shadow: 0 3px 0 rgba(0,0,0,0.1); pointer-events: none;}
 
         /* SCREEN 3: ADAPTIVE JOURNEY DECK */
-        #screen-journey { background: var(--theme-bg); transition: background 0.5s ease; padding: 35px; }
-        .slide-card { background: var(--theme-card); border: 4px solid var(--navy); border-radius: 24px; flex-grow: 1; display: flex; flex-direction: column; padding: 30px; box-shadow: 0 15px 0 var(--navy); position: relative; }
-        .slide-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px dashed #cbd5e1; padding-bottom: 15px; margin-bottom: 20px; }
-        .slide-header h3 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 28px; }
-        .slide-header .tag { background: var(--theme-accent); color: var(--navy); padding: 6px 16px; border-radius: 12px; font-weight: 700; border: 2px solid var(--navy); font-family: 'Fredoka', cursive; }
+        #screen-journey { background: var(--theme-bg); transition: background 0.5s ease; padding: 20px; }
+        .slide-card { background: var(--theme-card); border: 4px solid var(--navy); border-radius: 24px; flex-grow: 1; display: flex; flex-direction: column; padding: 20px; box-shadow: 0 12px 0 var(--navy); position: relative; }
+        .slide-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; padding-right: 140px; }
+        .slide-header h3 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 24px; }
+        .slide-header .tag { background: var(--theme-accent); color: var(--navy); padding: 4px 12px; border-radius: 12px; font-weight: 700; border: 2px solid var(--navy); font-family: 'Fredoka', cursive; font-size: 14px; }
         
-        .slide-body { flex-grow: 1; display: flex; gap: 30px; align-items: center; }
-        .slide-text { flex: 1.3; font-size: 21px; line-height: 1.6; color: var(--slate); font-weight: 500; }
-        .slide-visual { flex: 0.7; height: 100%; min-height: 260px; background: #f1f5f9; border: 3px solid var(--navy); border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 80px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        .slide-body { flex-grow: 1; display: flex; gap: 20px; align-items: center; }
+        .slide-text { flex: 1.3; font-size: 18px; line-height: 1.5; color: var(--slate); font-weight: 500; overflow-y: auto; max-height: 380px; }
+        .slide-visual { flex: 0.7; height: 100%; min-height: 200px; background: #f1f5f9; border: 3px solid var(--navy); border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 60px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
 
         /* QUIZ RENDER ENGINE SYSTEM */
-        .options-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
-        .quiz-option { background: white; border: 3px solid var(--navy); padding: 14px 20px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 700; color: var(--navy); transition: 0.2s; box-shadow: 0 4px 0 var(--navy); text-align: left; }
-        .quiz-option:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 6px 0 var(--navy); }
+        .options-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; width: 100%; }
+        .quiz-option { background: white; border: 3px solid var(--navy); padding: 12px 16px; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 700; color: var(--navy); transition: 0.2s; box-shadow: 0 4px 0 var(--navy); text-align: left; }
+        .quiz-option:hover { background: #f8fafc; }
         .quiz-option.selected { background: #e0f2fe; border-color: var(--sky); color: #0369a1; box-shadow: 0 4px 0 var(--sky); }
 
         /* PROGRESS FOOTER CONTROLS */
-        .controls { display: flex; justify-content: space-between; margin-top: 25px; align-items: center; }
-        .game-btn { background: #64748b; color: white; border: 3px solid var(--navy); padding: 14px 32px; font-size: 18px; font-weight: 700; border-radius: 14px; cursor: pointer; font-family: inherit; transition: 0.2s; box-shadow: 0 5px 0 var(--navy); display: inline-flex; align-items: center; gap: 10px; justify-content: center;}
-        .game-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--navy); }
-        .game-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--navy); }
+        .controls { display: flex; justify-content: space-between; margin-top: 15px; align-items: center; gap: 10px; }
+        .game-btn { background: #64748b; color: white; border: 3px solid var(--navy); padding: 12px 24px; font-size: 16px; font-weight: 700; border-radius: 14px; cursor: pointer; font-family: inherit; transition: 0.2s; box-shadow: 0 4px 0 var(--navy); display: inline-flex; align-items: center; gap: 8px; justify-content: center;}
+        .game-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--navy); }
         .game-btn-gold { background: var(--gold); color: var(--navy); }
         .game-btn-sky { background: var(--sky); color: white; }
 
         /* SCREEN 4: PREMIUM CERTIFICATE */
-        #screen-cert { overflow-y: auto; justify-content: flex-start; background: radial-gradient(circle, #fef08a 0%, #f59e0b 100%); }
-        .cert-container { background: #fffdf6; border: 10px double var(--navy); width: 90%; margin: 0 auto; padding: 45px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); position: relative; border-radius: 4px; }
-        .cert-title { font-family: 'Fredoka', cursive; color: var(--navy); letter-spacing: 4px; font-size: 40px; margin-bottom: 10px; }
-        .cert-name { font-size: 42px; font-weight: bold; border-bottom: 3px solid var(--navy); display: inline-block; padding: 5px 40px; margin: 25px 0; text-transform: uppercase; color: #1e293b; font-family: 'Fredoka', cursive; }
-        .signature-block { margin-top: 40px; display: flex; justify-content: center; }
-        .signature-line { border-top: 3px solid var(--navy); width: 300px; padding-top: 8px; font-weight: bold; font-size: 16px; color: var(--navy); }
+        #screen-cert { background: radial-gradient(circle, #fef08a 0%, #f59e0b 100%); padding: 20px; }
+        .cert-container { background: #fffdf6; border: 8px double var(--navy); width: 100%; max-width: 750px; margin: 0 auto; padding: 30px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border-radius: 4px; }
+        .cert-title { font-family: 'Fredoka', cursive; color: var(--navy); letter-spacing: 2px; font-size: 32px; margin-bottom: 5px; }
+        .cert-name { font-size: 32px; font-weight: bold; border-bottom: 3px solid var(--navy); display: inline-block; padding: 5px 30px; margin: 15px 0; text-transform: uppercase; color: #1e293b; font-family: 'Fredoka', cursive; }
+        .signature-block { margin-top: 30px; display: flex; justify-content: center; }
+        .signature-line { border-top: 3px solid var(--navy); width: 260px; padding-top: 6px; font-weight: bold; font-size: 14px; color: var(--navy); }
 
         /* ANIMATIONS */
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+
+        /* MOBILE RESPONSIVE ENGINE MEDIA QUERIES */
+        @media (max-width: 768px) {
+            body { padding: 0; }
+            .game-wrapper { height: 100vh; border-radius: 0; max-height: 100%; }
+            .game-window { border-radius: 0; border: none; }
+            .screen { padding: 15px; }
+            #screen-reg h1, .reg-subtitle { padding-right: 0; margin-top: 40px; font-size: 32px; }
+            .map-header { margin-right: 0; margin-top: 40px; }
+            .map-header h2 { font-size: 22px; }
+            .map-container { transform: scale(0.9); height: 85%; transform-origin: top center; }
+            .slide-header { padding-right: 0; margin-top: 40px; }
+            .slide-body { flex-direction: column; gap: 10px; }
+            .slide-visual { min-height: 100px; height: 100px; width: 100%; font-size: 40px; order: -1; }
+            .slide-text { font-size: 15px; max-height: 220px; }
+            .controls { flex-wrap: wrap; }
+            .controls .game-btn { flex: 1 1 40%; padding: 10px 12px; font-size: 14px; }
+            .cert-title { font-size: 24px; }
+            .cert-name { font-size: 24px; }
+            .cert-container { padding: 15px; margin-top: 40px; }
+            .no-print .game-btn { margin: 5px 0 !important; width: 100%; display: flex; }
+        }
 
         @media print {
             body * { visibility: hidden; }
             #screen-cert, #screen-cert * { visibility: visible; }
             #screen-cert { position: absolute; left: 0; top: 0; width: 100%; background: white; }
-            .no-print { display: none !important; }
+            .no-print, .fullscreen-btn { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-window">
+    <div class="game-wrapper" id="stageContainer">
+        <!-- Native Fullscreen Toggle for Mobile Devices -->
+        <button class="fullscreen-btn" id="fsToggleBtn" onclick="toggleFullscreenMode()">Fullscreen 📱</button>
 
-        <div id="screen-reg" class="screen active">
-            <h1>Pananaliksik Journey</h1>
-            <div class="reg-subtitle">Gamified Multimedia Intervention Module</div>
-            <div class="reg-form">
-                <input type="text" id="regName" placeholder="Ipasok ang Iyong Buong Pangalan">
-                <input type="text" id="regSection" placeholder="Baitang at Seksyon (e.g. 11-STEM A)">
-                <button class="game-btn game-btn-gold" style="width:100%; justify-content:center; margin-top:10px;" onmouseenter="playSound('hover')" onclick="handleRegistration()">Simulan ang Pakikipagsapalaran 🚀</button>
-            </div>
-        </div>
+        <div class="game-window">
 
-        <div id="screen-map" class="screen">
-            <div class="map-header">
-                <h2>🗺️ Ang Mapa ng Paglalakbay</h2>
-                <p style="color: var(--slate); font-weight: bold; font-size: 15px;">I-click ang kumikinang na istasyon upang pumasok sa aralin at pasulit.</p>
-            </div>
-            <div class="map-container">
-                <svg class="map-svg-layer">
-                    <path d="M 120 460 Q 260 540 450 420 T 760 340 T 380 180 T 780 100" fill="none" stroke="#64748b" stroke-width="8" stroke-dasharray="12" />
-                </svg>
-
-                <div class="map-node unlocked" id="node-0" style="left: 85px; top: 410px;" onmouseenter="playSound('hover')" onclick="enterStation(0)">1<div class="map-node-label">Istasyon 1: Ang Paksa</div></div>
-                <div class="map-node" id="node-1" style="left: 410px; top: 380px;" onmouseenter="playSound('hover')" onclick="enterStation(1)">2<div class="map-node-label">Istasyon 2: Ang RRL</div></div>
-                <div class="map-node" id="node-2" style="left: 720px; top: 280px;" onmouseenter="playSound('hover')" onclick="enterStation(2)">3<div class="map-node-label">Istasyon 3: Metodolohiya</div></div>
-                <div class="map-node" id="node-3" style="left: 330px; top: 140px;" onmouseenter="playSound('hover')" onclick="enterStation(3)">4<div class="map-node-label">Istasyon 4: Pagsusuri</div></div>
-                <div class="map-node" id="node-4" style="left: 760px; top: 60px;" onmouseenter="playSound('hover')" onclick="enterStation(4)">5<div class="map-node-label">Istasyon 5: Lagom at Wakas</div></div>
-                <div class="map-node" id="node-5" style="left: 480px; top: 40px;" onmouseenter="playSound('hover')" onclick="enterStation(5)">🏆<div class="map-node-label">Bundok ng Tagumpay</div></div>
-            </div>
-        </div>
-
-        <div id="screen-journey" class="screen">
-            <div class="slide-card">
-                <div class="slide-header">
-                    <h3 id="ui-station-title">Pamagat ng Antas</h3>
-                    <span class="tag" id="ui-progress-tag">Slide 1 / 5</span>
+            <!-- REGISTRATION -->
+            <div id="screen-reg" class="screen active">
+                <h1>Pananaliksik Journey</h1>
+                <div class="reg-subtitle">Gamified Multimedia Intervention Module</div>
+                <div class="reg-form">
+                    <input type="text" id="regName" placeholder="Ipasok ang Iyong Buong Pangalan">
+                    <input type="text" id="regSection" placeholder="Baitang at Seksyon (e.g. 11-STEM A)">
+                    <button class="game-btn game-btn-gold" style="width:100%; justify-content:center; margin-top:10px;" onmouseenter="playSound('hover')" onclick="handleRegistration()">Simulan ang Pakikipagsapalaran 🚀</button>
                 </div>
-                <div class="slide-body">
-                    <div class="slide-text" id="ui-slide-text">
-                        Nilalaman...
+            </div>
+
+            <!-- ADVENTURE MAP -->
+            <div id="screen-map" class="screen">
+                <div class="map-header">
+                    <h2>🗺️ Ang Mapa ng Paglalakbay</h2>
+                    <p style="color: var(--slate); font-weight: bold; font-size: 13px;">I-click ang kumikinang na istasyon upang pumasok sa aralin at pasulit.</p>
+                </div>
+                <div class="map-container">
+                    <svg class="map-svg-layer">
+                        <path d="M 80 400 Q 200 480 380 380 T 680 300 T 320 160 T 680 80" fill="none" stroke="#64748b" stroke-width="6" stroke-dasharray="10" />
+                    </svg>
+
+                    <div class="map-node unlocked" id="node-0" style="left: 45px; top: 365px;" onmouseenter="playSound('hover')" onclick="enterStation(0)">1<div class="map-node-label">Istasyon 1: Ang Paksa</div></div>
+                    <div class="map-node" id="node-1" style="left: 340px; top: 340px;" onmouseenter="playSound('hover')" onclick="enterStation(1)">2<div class="map-node-label">Istasyon 2: Ang RRL</div></div>
+                    <div class="map-node" id="node-2" style="left: 640px; top: 250px;" onmouseenter="playSound('hover')" onclick="enterStation(2)">3<div class="map-node-label">Istasyon 3: Metodolohiya</div></div>
+                    <div class="map-node" id="node-3" style="left: 280px; top: 120px;" onmouseenter="playSound('hover')" onclick="enterStation(3)">4<div class="map-node-label">Istasyon 4: Pagsusuri</div></div>
+                    <div class="map-node" id="node-4" style="left: 660px; top: 40px;" onmouseenter="playSound('hover')" onclick="enterStation(4)">5<div class="map-node-label">Istasyon 5: Lagom at Wakas</div></div>
+                    <div class="map-node" id="node-5" style="left: 440px; top: 20px;" onmouseenter="playSound('hover')" onclick="enterStation(5)">🏆<div class="map-node-label">Bundok ng Tagumpay</div></div>
+                </div>
+            </div>
+
+            <!-- JOURNEY DECK -->
+            <div id="screen-journey" class="screen">
+                <div class="slide-card">
+                    <div class="slide-header">
+                        <h3 id="ui-station-title">Pamagat ng Antas</h3>
+                        <span class="tag" id="ui-progress-tag">Slide 1 / 5</span>
                     </div>
-                    <div class="slide-visual" id="ui-slide-visual">
-                        💡
+                    <div class="slide-body">
+                        <div class="slide-text" id="ui-slide-text">Nilalaman...</div>
+                        <div class="slide-visual" id="ui-slide-visual">💡</div>
                     </div>
-                </div>
-                <div class="controls">
-                    <button class="game-btn" id="btn-back" onmouseenter="playSound('hover')" onclick="handleBackRoute()" style="width: 170px;">⬅️ Bumalik</button>
-                    <!-- READ BUTTON -->
-                    <button class="game-btn game-btn-sky" id="btn-read" onmouseenter="playSound('hover')" onclick="readCurrentSlide()" style="width: 190px;">🔊 Pakinggan</button>
-                    <button class="game-btn game-btn-gold" id="btn-forward" onmouseenter="playSound('hover')" onclick="handleForwardRoute()" style="width: 170px;">Susunod ➡️</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="screen-cert" class="screen">
-            <div style="height: 20px;"></div>
-            <div class="cert-container">
-                <div class="cert-title">KATIBAYAN NG PAGTATAPOS</div>
-                <p style="font-style: italic; font-size: 18px; color: var(--slate);">Ang sertipikong ito ay malugod na iginagawad kay</p>
-                <div class="cert-name" id="cert-student-name">PANGALAN NG MAG-AARAL</div>
-                <p style="font-size: 18px; line-height: 1.7; color: #334155;">mula sa <strong id="cert-section">SEKSYON</strong> sa matagumpay na pagkumpleto at pagpasa sa lahat ng antas ng <br>
-                <strong style="color:var(--gold); font-size:20px;">Interactive Media Intervention Module sa Pananaliksik</strong>.</p>
-                <p style="margin-top:35px; font-size:14px; color: #64748b;">Ipinagkaloob ngayong araw.</p>
-                <div class="signature-block">
-                    <div class="signature-line">
-                        CHESKA V. TULINAN<br>
-                        <span style="font-size:13px; color:#64748b; font-weight:normal;">Research Adviser / Tagapayo</span>
+                    <div class="controls">
+                        <button class="game-btn" id="btn-back" onmouseenter="playSound('hover')" onclick="handleBackRoute()">⬅️ Bumalik</button>
+                        <button class="game-btn game-btn-sky" id="btn-read" onmouseenter="playSound('hover')" onclick="readCurrentSlide()">🔊 Pakinggan</button>
+                        <button class="game-btn game-btn-gold" id="btn-forward" onmouseenter="playSound('hover')" onclick="handleForwardRoute()">Susunod ➡️</button>
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 30px; text-align: center; width: 100%;" class="no-print">
-                <button class="game-btn" style="background:var(--emerald);" onmouseenter="playSound('hover')" onclick="window.print()">📥 I-print / I-save bilang PDF</button>
-                <button class="game-btn game-btn-sky" style="margin-left:15px;" onmouseenter="playSound('hover')" onclick="readCert()">🔊 Pakinggan</button>
-                <button class="game-btn" style="background:var(--navy); margin-left:15px;" onmouseenter="playSound('hover')" onclick="routeToMap()">Tingnan ang Mapa 🗺️</button>
-            </div>
-        </div>
 
+            <!-- PREMIUM CERTIFICATE -->
+            <div id="screen-cert" class="screen">
+                <div class="cert-container">
+                    <div class="cert-title">KATIBAYAN NG PAGTATAPOS</div>
+                    <p style="font-style: italic; font-size: 16px; color: var(--slate);">Ang sertipikong ito ay malugod na iginagawad kay</p>
+                    <div class="cert-name" id="cert-student-name">PANGALAN NG MAG-AARAL</div>
+                    <p style="font-size: 15px; line-height: 1.6; color: #334155;">mula sa <strong id="cert-section">SEKSYON</strong> sa matagumpay na pagkumpleto at pagpasa sa lahat ng antas ng <br>
+                    <strong style="color:var(--gold); font-size:18px;">Interactive Media Intervention Module sa Pananaliksik</strong>.</p>
+                    <p style="margin-top:20px; font-size:12px; color: #64748b;">Ipinagkaloob ngayong araw.</p>
+                    <div class="signature-block">
+                        <div class="signature-line">
+                            CHESKA V. TULINAN<br>
+                            <span style="font-size:12px; color:#64748b; font-weight:normal;">Research Adviser / Tagapayo</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center; width: 100%;" class="no-print">
+                    <button class="game-btn" style="background:var(--emerald);" onmouseenter="playSound('hover')" onclick="window.print()">📥 I-print / PDF</button>
+                    <button class="game-btn game-btn-sky" style="margin-left:10px;" onmouseenter="playSound('hover')" onclick="readCert()">🔊 Pakinggan</button>
+                    <button class="game-btn" style="background:var(--navy); margin-left:10px;" onmouseenter="playSound('hover')" onclick="routeToMap()">Mapa 🗺️</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script>
+        // FULLSCREEN WEB API TRIGGER ENGINE
+        function toggleFullscreenMode() {
+            const container = document.getElementById('stageContainer');
+            const btn = document.getElementById('fsToggleBtn');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                if (container.requestFullscreen) { container.requestFullscreen(); } 
+                else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); } 
+                else if (container.msRequestFullscreen) { container.msRequestFullscreen(); }
+                btn.textContent = "Exit Screen 📲";
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); } 
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } 
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                btn.textContent = "Fullscreen 📱";
+            }
+        }
+
         // WEB AUDIO API SYNTHESIZER SOUND ENGINE
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-
             if (type === 'click') {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -268,8 +342,7 @@
             } else if (type === 'hover') {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.05);
@@ -291,35 +364,27 @@
                 const now = audioCtx.currentTime;
                 [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => {
                     const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                    o.type = 'triangle';
-                    o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(f, now + (i * 0.15));
+                    o.type = 'triangle'; o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(f, now + (i * 0.15));
                     g.gain.setValueAtTime(0.15, now + (i * 0.15)); g.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.15) + 0.6);
                     o.start(now + (i * 0.15)); o.stop(now + (i * 0.15) + 0.6);
                 });
             }
         }
 
-        // TEXT-TO-SPEECH ENGINE
+        // TEXT-TO-SPEECH ENGLISH ENGINE
         const synth = window.speechSynthesis;
         function speak(text) {
-            if (synth.speaking) {
-                synth.cancel(); 
-            }
+            if (synth.speaking) { synth.cancel(); }
             if (text !== '') {
                 const utterThis = new SpeechSynthesisUtterance(text);
-                utterThis.lang = 'en-US'; // PINALITAN PILING WIKANG INGLES
+                utterThis.lang = 'en-US'; 
                 utterThis.rate = 0.95; 
-                utterThis.pitch = 1;
                 synth.speak(utterThis);
             }
         }
-        function stopSpeaking() {
-            if (synth.speaking) {
-                synth.cancel();
-            }
-        }
+        function stopSpeaking() { if (synth.speaking) { synth.cancel(); } }
 
-        // STATION MATRIX DATABASE (ENG AUDIO CONTENT MATRIX)
+        // DATA MATRIX WITH ENGLISH AUDIO TRANSLATION PATHS
         const database = [
             {
                 title: "Istasyon 1: Pagpili at Paglilimita ng Paksa",
@@ -348,7 +413,7 @@
                     { t: "Kahalagahan ng RRL", c: "Ang Review of Related Literature ang nagsisilbing akademikong pundasyon ng iyong tesis. Ipinapakita nito ang mga nakaraang pag-aaral at mga teorya na nagpapatunay na ang iyong paksa ay may pang-agham na batayan.", v: "📚", eng: "Importance of RRL. The Review of Related Literature serves as the academic foundation of your thesis. It presents past studies and theories proving your topic has a scientific basis." },
                     { t: "Etika at Plagiarism", c: "Ang plagiarism ay ang sadyang pagkopya ng ideya o gawa ng iba nang walang kaukulang pagkilala. Sa pananaliksik, ito ay itinuturing na isang mabigat na krimeng akademiko na may kaukulang parusa.", v: "⚖️", eng: "Ethics and Plagiarism. Plagiarism is intentionally copying someone else's work or ideas without proper acknowledgment. In research, this is considered a serious academic offense with heavy penalties." },
                     { t: "Estilo ng Sitasyon (APA Format)", c: "Upang maiwasan ang plagiarism, gumamit ng tamang in-text citation. Ang APA 7th Edition ang pinakagamitin sa agham panlipunan. Halimbawa ng Parenthetical format ay bukas na panaklong, apelyido, kuwit, taon, sarang panaklong.", v: "📝", eng: "Citation Style or APA Format. To avoid plagiarism, use correct in-text citations. APA 7th Edition is the most commonly used in social sciences. An example of parenthetical format is open parenthesis, surname, comma, year, close parenthesis." },
-                    { t: "Ang Konsepto ng Synthesis", c: "Ang mahusay na RRL ay hindi lamang simpleng pagdugtong-dugtong ng mga sinabi ng iba't ibang awtor. Ito ay isang kritikal na pagsasama-sama ng mga ideya upang ipakita ang pagkakatulad at pagkakaiba ng mga nakaraang pag-aaral.", v: "🧩", eng: "The Concept of Synthesis. A great RRL is not just a simple stringing together of what different authors said. It is a critical integration of ideas to highlight similarities and differences among past studies." },
+                    { t: "Ang Konsepto ng Synthesis", c: "Ang mahusay na RRL ay hindi lamang simpleng pagdugtong-dugtong ng mga sinabi ng iba't ibang awtor. Ito ay isang kritikal na pagsasama-sama ng mga ideya upang Ipakita ang pagkakatulad at pagkakaiba ng mga nakaraang pag-aaral.", v: "🧩", eng: "The Concept of Synthesis. A great RRL is not just a simple stringing together of what different authors said. It is a critical integration of ideas to highlight similarities and differences among past studies." },
                     { t: "Pagtukoy sa Research Gap", c: "Ang pangunahing layunin ng RRL ay mahanap ang Research Gap o ang puwang sa kaalaman na hindi pa nasasagot ng mga nakaraang pag-aaral. Dito papasok ang halaga ng iyong bagong pananaliksik.", v: "🕳️", eng: "Identifying the Research Gap. The main purpose of RRL is to find the research gap, or the missing piece of knowledge unanswered by previous studies. This is where the value of your new research comes in." }
                 ],
                 quiz: [
@@ -404,7 +469,7 @@
                 slides: [
                     { t: "Pagsusuri ng Datos", c: "Kapag nakalap na ang lahat ng talatanungan, ang mga sagot ay isasaayos at itatala. Sa kwantitatibo, gagamit tayo ng mga talahanayan o graphs upang ipakita ang pangkalahatang takbo.", v: "📊", eng: "Data Analysis. Once all questionnaires are gathered, responses are organized and tallied. In quantitative data, we use tables or graphs to display the overall trend." },
                     { t: "Statistical Treatment", c: "Gagamitan ito ng angkop na estadistika. Ang pinakasimple ay ang Descriptive Statistics gaya ng frequency at Weighted Mean upang makuha ang pangkalahatang average.", v: "🧮", eng: "Statistical Treatment. Appropriate statistics will be applied. The simplest is descriptive statistics, such as frequency and weighted mean, to obtain the overall average." },
-                    { t: "Thematic Analysis", c: "Para naman sa kwalitatibong datos, gagamitin ang Tematikong Pagsusuri. Babasahin nang paulit-ulit ang mga transcript ng interview upang makabuo ng mga Tema o pattern mula sa mga sagot.", v: "🗂️", eng: "Thematic Analysis. For qualitative data, thematic analysis is used. Interview transcripts are read repeatedly to build themes or patterns from the responses." },
+                    { t: "Thematic Analysis", c: "Para naman sa kwalitatibong datos, gagamit ang Tematikong Pagsusuri. Babasahin nang paulit-ulit ang mga transcript ng interview upang makabuo ng mga Tema o pattern mula sa mga sagot.", v: "🗂️", eng: "Thematic Analysis. For qualitative data, thematic analysis is used. Interview transcripts are read repeatedly to build themes or patterns from the responses." },
                     { t: "Interpretasyon ng Datos", c: "Ang interpretasyon ay ang pagbibigay-buhay sa mga numero. Ipinapaliwanag dito kung BAKIT ganoon ang naging resulta at kung paano ito sumusuporta o sumasalungat sa mga teorya sa RRL.", v: "💡", eng: "Data Interpretation. Interpretation brings life to numbers. It explains why the results turned out that way and how they support or contradict theories in the RRL." },
                     { t: "Lagom, Konklusyon at Rekomendasyon", c: "Ang Lagom ay maikling buod ng resulta. Ang Konklusyon ay ang direktang sagot sa iyong mga katanungan. Ang Rekomendasyon naman ay mga praktikal na mungkahi para sa paaralan o sa mga susunod pang mananaliksik.", v: "🏁", eng: "Summary, Conclusion, and Recommendations. The summary is a short overview of results. The conclusion directly answers your research questions. Recommendations provide practical suggestions for the school or future researchers." }
                 ],
@@ -433,7 +498,6 @@
         function handleRegistration() {
             gameState.name = document.getElementById('regName').value.trim();
             gameState.section = document.getElementById('regSection').value.trim();
-
             if(!gameState.name || !gameState.section) {
                 playSound('wrong');
                 alert("⚠️ Mangyaring ipasok ang iyong Pangalan at Seksyon upang makalikha ng opisyal na rekord.");
@@ -454,23 +518,17 @@
             for(let i = 0; i <= 5; i++) {
                 const node = document.getElementById('node-' + i);
                 if(node) {
-                    node.className = 'map-node'; // Reset classes
+                    node.className = 'map-node'; 
                     if(i < gameState.unlockedStation) {
                         node.classList.add('completed');
                         node.innerHTML = "✓" + `<div class="map-node-label">${getNodeLabelText(i)}</div>`;
                     } else if (i === gameState.unlockedStation) {
                         node.classList.add('unlocked');
-                        if(i === 5) {
-                            node.innerHTML = "🏆" + `<div class="map-node-label">Bundok ng Tagumpay</div>`;
-                        } else {
-                            node.innerHTML = (i + 1) + `<div class="map-node-label">${getNodeLabelText(i)}</div>`;
-                        }
+                        if(i === 5) { node.innerHTML = "🏆" + `<div class="map-node-label">Bundok ng Tagumpay</div>`; } 
+                        else { node.innerHTML = (i + 1) + `<div class="map-node-label">${getNodeLabelText(i)}</div>`; }
                     } else {
-                        if(i === 5) {
-                            node.innerHTML = "🏆" + `<div class="map-node-label">Naka-Lock pa</div>`;
-                        } else {
-                            node.innerHTML = (i + 1) + `<div class="map-node-label">Naka-Lock pa</div>`;
-                        }
+                        if(i === 5) { node.innerHTML = "🏆" + `<div class="map-node-label">Naka-Lock pa</div>`; } 
+                        else { node.innerHTML = (i + 1) + `<div class="map-node-label">Naka-Lock pa</div>`; }
                     }
                 }
             }
@@ -495,12 +553,10 @@
             stopSpeaking();
 
             if(index === 5) {
-                // Trigger Certificate Screen
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById('cert-student-name').innerText = gameState.name;
                 document.getElementById('cert-section').innerText = gameState.section;
                 document.getElementById('screen-cert').classList.add('active');
-                
                 playSound('cert_fanfare');
                 return;
             }
@@ -509,10 +565,8 @@
             gameState.activeSlide = 0;
             gameState.quizMode = false;
             
-            // Dynamic theme assignment
             document.documentElement.style.setProperty('--theme-bg', database[index].color);
             document.documentElement.style.setProperty('--theme-accent', database[index].accent);
-
             renderJourneyScreen();
         }
 
@@ -521,7 +575,6 @@
             stopSpeaking(); 
 
             const currentData = database[gameState.activeStation];
-            
             const titleElement = document.getElementById('ui-station-title');
             const progressElement = document.getElementById('ui-progress-tag');
             const textElement = document.getElementById('ui-slide-text');
@@ -529,15 +582,13 @@
             const forwardBtn = document.getElementById('btn-forward');
 
             if(!gameState.quizMode) {
-                // LESSON SLIDE VIEW
                 const slide = currentData.slides[gameState.activeSlide];
                 titleElement.innerText = currentData.title;
                 progressElement.innerText = `Slide ${gameState.activeSlide + 1} / 5`;
-                textElement.innerHTML = `<strong style="font-size:26px; color:var(--navy); display:block; margin-bottom:12px;">${slide.t}</strong><p>${slide.c}</p>`;
+                textElement.innerHTML = `<strong style="font-size:22px; color:var(--navy); display:block; margin-bottom:10px;">${slide.t}</strong><p>${slide.c}</p>`;
                 visualElement.innerText = slide.v;
-                forwardBtn.innerText = gameState.activeSlide === 4 ? "Magsimula ng Quiz 📝" : "Susunod ➡️";
+                forwardBtn.innerText = gameState.activeSlide === 4 ? "Quiz 📝" : "Susunod ➡️";
             } else {
-                // QUIZ QUESTION VIEW
                 const q = currentData.quiz[gameState.quizStep];
                 titleElement.innerText = `Pasulit: Istasyon ${gameState.activeStation + 1}`;
                 progressElement.innerText = `Tanong ${gameState.quizStep + 1} / 5`;
@@ -549,25 +600,21 @@
 
                 textElement.innerHTML = `
                     <div style="width:100%;">
-                        <p style="font-size:21px; font-weight:bold; margin-bottom:15px; color:var(--navy);">${gameState.quizStep + 1}. ${q.q}</p>
+                        <p style="font-size:18px; font-weight:bold; margin-bottom:12px; color:var(--navy);">${gameState.quizStep + 1}. ${q.q}</p>
                         <div class="options-grid">${optionsHTML}</div>
                     </div>
                 `;
                 visualElement.innerText = "❓";
-                forwardBtn.innerText = gameState.quizStep === 4 ? "I-submit ang Pasulit 🏁" : "Susunod na Tanong ➡️";
+                forwardBtn.innerText = gameState.quizStep === 4 ? "Submit 🏁" : "Susunod ➡️";
             }
-
             document.getElementById('screen-journey').classList.add('active');
         }
 
-        // MAHIWAGANG READ BUTTON NA NAGSASALITA NG INGLES
         function readCurrentSlide() {
             playSound('click');
             const currentData = database[gameState.activeStation];
-
             if(!gameState.quizMode) {
                 const slide = currentData.slides[gameState.activeSlide];
-                // Babasahin ang English translated data na nilagay ko sa database matrix sa itaas
                 speak(slide.eng);
             } else {
                 const q = currentData.quiz[gameState.quizStep];
@@ -575,75 +622,44 @@
             }
         }
 
-        // CERTIFICATE READ BUTTON NA INLES NA DIN
         function readCert() {
             playSound('click');
-            const certSpeech = `Congratulations, ${gameState.name}, from section ${gameState.section}. This Certificate of Completion is proudly awarded to you for successfully completing and passing all levels of the Interactive Media Intervention Module in Research. Your dedication is truly impressive. Well done!`;
-            speak(certSpeech);
+            speak(`Congratulations, ${gameState.name}, from section ${gameState.section}. This Certificate of Completion is proudly awarded to you for successfully passing all levels of the Interactive Media Intervention Module in Research. Well done!`);
         }
 
         function handleForwardRoute() {
             playSound('click');
-            const currentData = database[gameState.activeStation];
-
             if(!gameState.quizMode) {
-                if(gameState.activeSlide < 4) {
-                    gameState.activeSlide++;
-                    renderJourneyScreen();
-                } else {
-                    gameState.quizMode = true;
-                    gameState.quizStep = 0;
-                    gameState.tempQuizAnswers = {};
-                    renderJourneyScreen();
-                }
+                if(gameState.activeSlide < 4) { gameState.activeSlide++; renderJourneyScreen(); } 
+                else { gameState.quizMode = true; gameState.quizStep = 0; gameState.tempQuizAnswers = {}; renderJourneyScreen(); }
             } else {
                 if(gameState.tempQuizAnswers[gameState.quizStep] === undefined) {
                     playSound('wrong');
-                    alert("⚠️ Pakisagutan muna ang kasalukuyang tanong bago magpatuloy.");
+                    alert("⚠️ Pakisagutan muna ang kasalukuyang tanong.");
                     return;
                 }
-
-                if(gameState.quizStep < 4) {
-                    gameState.quizStep++;
-                    renderJourneyScreen();
-                } else {
-                    evaluateQuizScore();
-                }
+                if(gameState.quizStep < 4) { gameState.quizStep++; renderJourneyScreen(); } 
+                else { evaluateQuizScore(); }
             }
         }
 
         function handleBackRoute() {
             playSound('click');
             if(!gameState.quizMode) {
-                if(gameState.activeSlide > 0) {
-                    gameState.activeSlide--;
-                    renderJourneyScreen();
-                } else {
-                    routeToMap();
-                }
+                if(gameState.activeSlide > 0) { gameState.activeSlide--; renderJourneyScreen(); } 
+                else { routeToMap(); }
             } else {
-                if(gameState.quizStep > 0) {
-                    gameState.quizStep--;
-                    renderJourneyScreen();
-                } else {
-                    gameState.quizMode = false;
-                    gameState.activeSlide = 4;
-                    renderJourneyScreen();
-                }
+                if(gameState.quizStep > 0) { gameState.quizStep--; renderJourneyScreen(); } 
+                else { gameState.quizMode = false; gameState.activeSlide = 4; renderJourneyScreen(); }
             }
         }
 
         function selectQuizOption(optionIndex) {
             playSound('click');
             gameState.tempQuizAnswers[gameState.quizStep] = optionIndex;
-            
-            const buttons = document.querySelectorAll('.quiz-option');
-            buttons.forEach((btn, idx) => {
-                if (idx === optionIndex) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
+            document.querySelectorAll('.quiz-option').forEach((btn, idx) => {
+                if (idx === optionIndex) { btn.classList.add('selected'); } 
+                else { btn.classList.remove('selected'); }
             });
         }
 
@@ -651,24 +667,18 @@
             stopSpeaking();
             const currentData = database[gameState.activeStation];
             let score = 0;
-
             currentData.quiz.forEach((item, idx) => {
-                if(gameState.tempQuizAnswers[idx] === item.a) {
-                    score++;
-                }
+                if(gameState.tempQuizAnswers[idx] === item.a) { score++; }
             });
 
             if(score === 5) {
                 playSound('correct');
-                alert(`🏆 Kamangha-manghang Gawain! Perpekto ang iyong marka (${score}/5). Tagumpay mong na-unlock ang susunod na bahagi ng mapa!`);
-                
-                if(gameState.activeStation === gameState.unlockedStation) {
-                    gameState.unlockedStation++;
-                }
+                alert(`🏆 Perpekto ang iyong marka (${score}/5)! Na-unlock ang susunod na bahagi ng mapa!`);
+                if(gameState.activeStation === gameState.unlockedStation) { gameState.unlockedStation++; }
                 routeToMap();
             } else {
                 playSound('wrong');
-                alert(`❌ May mali sa iyong mga sagot (Marka: ${score}/5). Upang matiyak ang Mastery, kailangang makuha ang perpektong marka. Subukan nating muli ang pasulit!`);
+                alert(`❌ Pagsusulit Hindi Pasa (Marka: ${score}/5). Kailangan ng perpektong marka upang makapasa. Subukan nating muli!`);
                 gameState.quizStep = 0;
                 gameState.tempQuizAnswers = {};
                 renderJourneyScreen();
