@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pananaliksik Game Intervention: Ang Huling Paglalakbay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0f172a;
+            --cream: #f8fafc;
+            --slate: #475569;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --sky: #0ea5e9;
+            --gold: #f59e0b;
+            
+            /* Station Dynamic Gradients */
+            --theme-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --theme-card: #ffffff;
+            --theme-accent: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+            font-family: 'Quicksand', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-window {
+            width: 1024px;
+            height: 700px;
+            background-color: var(--cream);
+            border-radius: 32px;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 4px solid var(--navy);
+        }
+
+        /* SCREENS ENGINE */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        .screen.active { display: flex; flex-direction: column; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* SCREEN 1: REGISTRATION */
+        #screen-reg {
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #334155 0%, #0f172a 100%);
+            color: white;
+            text-align: center;
+        }
+        #screen-reg h1 { font-family: 'Fredoka', cursive; font-size: 56px; color: var(--gold); text-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 5px; }
+        .reg-subtitle { font-size: 20px; color: #94a3b8; margin-bottom: 30px; font-weight: bold; }
+        .reg-form { background: rgba(255, 255, 255, 0.08); padding: 40px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.1); width: 480px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .reg-form input { width: 100%; padding: 16px; margin: 15px 0; border-radius: 12px; border: 2px solid #64748b; font-size: 18px; font-family: inherit; font-weight: bold; text-align: center; color: var(--navy); background: white; }
+        .reg-form input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+        
+        /* SCREEN 2: ADVENTURE MAP */
+        #screen-map { background: #bae6fd; overflow: hidden; position: relative; }
+        .map-header { text-align: center; z-index: 10; margin-bottom: 10px; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 16px; border: 2px solid var(--navy); }
+        .map-header h2 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 34px; }
+        
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 100%);
+            border-radius: 20px;
+            border: 3px dashed var(--navy);
+        }
+
+        .map-svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Map Interactive Nodes */
+        .map-node {
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            border: 5px solid #64748b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fredoka', cursive;
+            font-size: 28px;
+            color: #64748b;
+            z-index: 5;
+            cursor: not-allowed;
+            box-shadow: 0 8px 0 #475569;
+            transition: all 0.2s ease;
+        }
+
+        .map-node.unlocked { background: #38bdf8; border-color: var(--navy); color: white; box-shadow: 0 8px 0 #0369a1; cursor: pointer; animation: bounce 1.5s infinite alternate; }
+        .map-node.unlocked:hover { transform: translateY(-4px); box-shadow: 0 12px 0 #0369a1; }
+        .map-node.completed { background: var(--emerald); border-color: var(--navy); color: white; box-shadow: 0 8px 0 #047857; cursor: pointer; }
+        .map-node.completed:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #047857; }
+        
+        .map-node-label { position: absolute; bottom: -42px; width: 170px; text-align: center; font-weight: 700; font-size: 13px; color: var(--navy); background: white; padding: 4px 8px; border-radius: 8px; border: 2px solid var(--navy); box-shadow: 0 4px 0 rgba(0,0,0,0.1); pointer-events: none;}
+
+        /* SCREEN 3: ADAPTIVE JOURNEY DECK */
+        #screen-journey { background: var(--theme-bg); transition: background 0.5s ease; padding: 35px; }
+        .slide-card { background: var(--theme-card); border: 4px solid var(--navy); border-radius: 24px; flex-grow: 1; display: flex; flex-direction: column; padding: 30px; box-shadow: 0 15px 0 var(--navy); position: relative; }
+        .slide-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px dashed #cbd5e1; padding-bottom: 15px; margin-bottom: 20px; }
+        .slide-header h3 { font-family: 'Fredoka', cursive; color: var(--navy); font-size: 28px; }
+        .slide-header .tag { background: var(--theme-accent); color: var(--navy); padding: 6px 16px; border-radius: 12px; font-weight: 700; border: 2px solid var(--navy); font-family: 'Fredoka', cursive; }
+        
+        .slide-body { flex-grow: 1; display: flex; gap: 30px; align-items: center; }
+        .slide-text { flex: 1.3; font-size: 21px; line-height: 1.6; color: var(--slate); font-weight: 500; }
+        .slide-visual { flex: 0.7; height: 100%; min-height: 260px; background: #f1f5f9; border: 3px solid var(--navy); border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 80px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+
+        /* QUIZ RENDER ENGINE SYSTEM */
+        .options-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
+        .quiz-option { background: white; border: 3px solid var(--navy); padding: 14px 20px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 700; color: var(--navy); transition: 0.2s; box-shadow: 0 4px 0 var(--navy); text-align: left; }
+        .quiz-option:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 6px 0 var(--navy); }
+        .quiz-option.selected { background: #e0f2fe; border-color: var(--sky); color: #0369a1; box-shadow: 0 4px 0 var(--sky); }
+
+        /* PROGRESS FOOTER CONTROLS */
+        .controls { display: flex; justify-content: space-between; margin-top: 25px; align-items: center; }
+        .game-btn { background: #64748b; color: white; border: 3px solid var(--navy); padding: 14px 32px; font-size: 18px; font-weight: 700; border-radius: 14px; cursor: pointer; font-family: inherit; transition: 0.2s; box-shadow: 0 5px 0 var(--navy); display: inline-flex; align-items: center; gap: 10px; justify-content: center;}
+        .game-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--navy); }
+        .game-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--navy); }
+        .game-btn-gold { background: var(--gold); color: var(--navy); }
+        .game-btn-sky { background: var(--sky); color: white; }
+
+        /* SCREEN 4: PREMIUM CERTIFICATE */
+        #screen-cert { overflow-y: auto; justify-content: flex-start; background: radial-gradient(circle, #fef08a 0%, #f59e0b 100%); }
+        .cert-container { background: #fffdf6; border: 10px double var(--navy); width: 90%; margin: 0 auto; padding: 45px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); position: relative; border-radius: 4px; }
+        .cert-title { font-family: 'Fredoka', cursive; color: var(--navy); letter-spacing: 4px; font-size: 40px; margin-bottom: 10px; }
+        .cert-name { font-size: 42px; font-weight: bold; border-bottom: 3px solid var(--navy); display: inline-block; padding: 5px 40px; margin: 25px 0; text-transform: uppercase; color: #1e293b; font-family: 'Fredoka', cursive; }
+        .signature-block { margin-top: 40px; display: flex; justify-content: center; }
+        .signature-line { border-top: 3px solid var(--navy); width: 300px; padding-top: 8px; font-weight: bold; font-size: 16px; color: var(--navy); }
+
+        /* ANIMATIONS */
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+        @media print {
+            body * { visibility: hidden; }
+            #screen-cert, #screen-cert * { visibility: visible; }
+            #screen-cert { position: absolute; left: 0; top: 0; width: 100%; background: white; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-window">
+
+        <div id="screen-reg" class="screen active">
+            <h1>Pananaliksik Journey</h1>
+            <div class="reg-subtitle">Gamified Multimedia Intervention Module</div>
+            <div class="reg-form">
+                <input type="text" id="regName" placeholder="Ipasok ang Iyong Buong Pangalan">
+                <input type="text" id="regSection" placeholder="Baitang at Seksyon (e.g. 11-STEM A)">
+                <button class="game-btn game-btn-gold" style="width:100%; justify-content:center; margin-top:10px;" onmouseenter="playSound('hover')" onclick="handleRegistration()">Simulan ang Pakikipagsapalaran 🚀</button>
+            </div>
+        </div>
+
+        <div id="screen-map" class="screen">
+            <div class="map-header">
+                <h2>🗺️ Ang Mapa ng Paglalakbay</h2>
+                <p style="color: var(--slate); font-weight: bold; font-size: 15px;">I-click ang kumikinang na istasyon upang pumasok sa aralin at pasulit.</p>
+            </div>
+            <div class="map-container">
+                <svg class="map-svg-layer">
+                    <path d="M 120 460 Q 260 540 450 420 T 760 340 T 380 180 T 780 100" fill="none" stroke="#64748b" stroke-width="8" stroke-dasharray="12" />
+                </svg>
+
+                <div class="map-node unlocked" id="node-0" style="left: 85px; top: 410px;" onmouseenter="playSound('hover')" onclick="enterStation(0)">1<div class="map-node-label">Istasyon 1: Ang Paksa</div></div>
+                <div class="map-node" id="node-1" style="left: 410px; top: 380px;" onmouseenter="playSound('hover')" onclick="enterStation(1)">2<div class="map-node-label">Istasyon 2: Ang RRL</div></div>
+                <div class="map-node" id="node-2" style="left: 720px; top: 280px;" onmouseenter="playSound('hover')" onclick="enterStation(2)">3<div class="map-node-label">Istasyon 3: Metodolohiya</div></div>
+                <div class="map-node" id="node-3" style="left: 330px; top: 140px;" onmouseenter="playSound('hover')" onclick="enterStation(3)">4<div class="map-node-label">Istasyon 4: Pagsusuri</div></div>
+                <div class="map-node" id="node-4" style="left: 760px; top: 60px;" onmouseenter="playSound('hover')" onclick="enterStation(4)">5<div class="map-node-label">Istasyon 5: Lagom at Wakas</div></div>
+                <div class="map-node" id="node-5" style="left: 480px; top: 40px;" onmouseenter="playSound('hover')" onclick="enterStation(5)">🏆<div class="map-node-label">Bundok ng Tagumpay</div></div>
+            </div>
+        </div>
+
+        <div id="screen-journey" class="screen">
+            <div class="slide-card">
+                <div class="slide-header">
+                    <h3 id="ui-station-title">Pamagat ng Antas</h3>
+                    <span class="tag" id="ui-progress-tag">Slide 1 / 5</span>
+                </div>
+                <div class="slide-body">
+                    <div class="slide-text" id="ui-slide-text">
+                        Nilalaman...
+                    </div>
+                    <div class="slide-visual" id="ui-slide-visual">
+                        💡
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="game-btn" id="btn-back" onmouseenter="playSound('hover')" onclick="handleBackRoute()" style="width: 170px;">⬅️ Bumalik</button>
+                    <!-- READ BUTTON -->
+                    <button class="game-btn game-btn-sky" id="btn-read" onmouseenter="playSound('hover')" onclick="readCurrentSlide()" style="width: 190px;">🔊 Pakinggan</button>
+                    <button class="game-btn game-btn-gold" id="btn-forward" onmouseenter="playSound('hover')" onclick="handleForwardRoute()" style="width: 170px;">Susunod ➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-cert" class="screen">
+            <div style="height: 20px;"></div>
+            <div class="cert-container">
+                <div class="cert-title">KATIBAYAN NG PAGTATAPOS</div>
+                <p style="font-style: italic; font-size: 18px; color: var(--slate);">Ang sertipikong ito ay malugod na iginagawad kay</p>
+                <div class="cert-name" id="cert-student-name">PANGALAN NG MAG-AARAL</div>
+                <p style="font-size: 18px; line-height: 1.7; color: #334155;">mula sa <strong id="cert-section">SEKSYON</strong> sa matagumpay na pagkumpleto at pagpasa sa lahat ng antas ng <br>
+                <strong style="color:var(--gold); font-size:20px;">Interactive Media Intervention Module sa Pananaliksik</strong>.</p>
+                <p style="margin-top:35px; font-size:14px; color: #64748b;">Ipinagkaloob ngayong araw.</p>
+                <div class="signature-block">
+                    <div class="signature-line">
+                        CHESKA V. TULINAN<br>
+                        <span style="font-size:13px; color:#64748b; font-weight:normal;">Research Adviser / Tagapayo</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 30px; text-align: center; width: 100%;" class="no-print">
+                <button class="game-btn" style="background:var(--emerald);" onmouseenter="playSound('hover')" onclick="window.print()">📥 I-print / I-save bilang PDF</button>
+                <button class="game-btn game-btn-sky" style="margin-left:15px;" onmouseenter="playSound('hover')" onclick="readCert()">🔊 Pakinggan</button>
+                <button class="game-btn" style="background:var(--navy); margin-left:15px;" onmouseenter="playSound('hover')" onclick="routeToMap()">Tingnan ang Mapa 🗺️</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // WEB AUDIO API SYNTHESIZER SOUND ENGINE
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+
+            if (type === 'click') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime); 
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'hover') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'correct') {
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(f, now + (i * 0.08));
+                    g.gain.setValueAtTime(0.1, now + (i * 0.08)); g.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.3);
+                    o.start(now + (i * 0.08)); o.stop(now + (i * 0.08) + 0.3);
+                });
+            } else if (type === 'wrong') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(130, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'cert_fanfare') {
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.type = 'triangle';
+                    o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(f, now + (i * 0.15));
+                    g.gain.setValueAtTime(0.15, now + (i * 0.15)); g.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.15) + 0.6);
+                    o.start(now + (i * 0.15)); o.stop(now + (i * 0.15) + 0.6);
+                });
+            }
+        }
+
+        // TEXT-TO-SPEECH ENGINE
+        const synth = window.speechSynthesis;
+        function speak(text) {
+            if (synth.speaking) {
+                synth.cancel(); 
+            }
+            if (text !== '') {
+                const utterThis = new SpeechSynthesisUtterance(text);
+                utterThis.lang = 'en-US'; // PINALITAN PILING WIKANG INGLES
+                utterThis.rate = 0.95; 
+                utterThis.pitch = 1;
+                synth.speak(utterThis);
+            }
+        }
+        function stopSpeaking() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        }
+
+        // STATION MATRIX DATABASE (ENG AUDIO CONTENT MATRIX)
+        const database = [
+            {
+                title: "Istasyon 1: Pagpili at Paglilimita ng Paksa",
+                color: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                accent: "#f59e0b",
+                slides: [
+                    { t: "Pundasyon ng Pananaliksik", c: "Ang pagpili ng paksa ang pinakaunang kritikal na hakbang sa akademikong pagsulat. Ang isang mahusay na paksa ay kailangang maging makabuluhan, nakakapukaw ng interes ng mananaliksik, at naglalaman ng solusyon sa isang umiiral na problema sa lipunan.", v: "🎯", eng: "The Foundation of Research. Topic selection is the very first critical step in academic writing. A good topic must be significant, invoke the researcher's interest, and contain a solution to an existing societal problem." },
+                    { t: "Mga Kraytirya sa Pagpili", c: "Tandaan ang tatlong mahahalagang salik sa pagpili: Una, Interes, gusto mo ang iyong ginagawa para hindi ka mawalan ng gana. Ikalawa, Feasibility, kayang matapos sa takdang panahon at abot ng badyet. Ikatlo, Sanggunian, may sapat na mga libro o artikulong mapagkukunan ng datos.", v: "📋", eng: "Selection Criteria. Remember three essential factors: First, Interest—you must like what you do so you don't lose motivation. Second, Feasibility—it can be finished on time and within budget. Third, References—there are enough books or articles as data sources." },
+                    { t: "Mula Malawak Patungong Tiyak", c: "Ang karaniwang pagkakamali ng mga mag-aaral ay ang pagpili ng paksang masyadong malawak. Halimbawa, ang paksang 'Epekto ng Social Media' ay masyadong malawak at mahirap tapusin dahil bilyon ang gumagamit nito sa buong mundo.", v: "🌐", eng: "From Broad to Specific. A common mistake among students is choosing a topic that is too broad. For example, the topic 'Effects of Social Media' is too wide and difficult to complete because billions of people use it worldwide." },
+                    { t: "Istratehiya sa Paglilimita", c: "Upang limitahan ang paksa, gumamit ng parametro: Tiyak na Lunan tulad ng isang partikular na paaralan. Tiyak na Populasyon gaya ng mag-aaral lamang sa Grade 11. At Tiyak na Platform, tulad ng paggamit ng Facebook Messenger Chat.", v: "🔍", eng: "Limiting Strategies. To narrow down your topic, use parameters: Specific Location, such as a particular school; Specific Population, like Grade 11 students only; and Specific Platform, such as the use of Facebook Messenger Chat." },
+                    { t: "Pagbuo ng Pinal na Pamagat", c: "Ang isang maayos na nalimitang pamagat ay malinaw na nagpapakita ng ugnayan ng mga variable. Halimbawa: Epekto ng Facebook Messenger Chat Group sa Kolaboratibong Gawain ng mga Mag-aaral sa Grade 11.", v: "✍️", eng: "Formulating the Final Title. A well-limited title clearly shows the relationship between variables. For example: The Impact of Facebook Messenger Chat Groups on the Collaborative Work of Grade 11 Students." }
+                ],
+                quiz: [
+                    { q: "Alin ang pinakaunang hakbang sa pagbuo ng isang siyentipikong pananaliksik?", o: ["Pagsulat ng Konklusyon", "Pagpili at Paglilimita ng Paksa", "Pag-analisa ng Estadistika", "Pag-print ng Papel"], a: 1, eng: "Which is the very first step in developing scientific research?" },
+                    { q: "Bakit itinuturing na hindi mainam ang paksang masyadong malawak?", o: ["Dahil hindi ito magugustuhan ng mga kaklase", "Dahil mahirap itong tapusin dahil sa dami ng sakop na impormasyon", "Dahil walang papel na kasya dito", "Dahil masyadong maikli ang pamagat"], a: 1, eng: "Why is an overly broad topic considered unfavorable?" },
+                    { q: "Alin sa mga sumusunod ang nagpapakita ng pinaka-limitado at tiyak na paksa?", o: ["Ang Teknolohiya sa Buong Asya", "Epekto ng TikTok sa Atensyon ng mga Mag-aaral sa Grade 11 ng Isang Paaralan", "Ang Paggamit ng Internet ng mga Kabataan ngayon", "Mga Laro sa Computer"], a: 1, eng: "Which of the following shows the most limited and specific topic?" },
+                    { q: "Ano ang kahulugan ng 'Feasibility' sa pagpili ng paksa?", o: ["Kagandahan ng font na gagamitin sa computer", "Kakayahang matapos ang pag-aaral base sa oras, kakayahan, at resources", "Katanyagan ng pangalan ng mananaliksik sa social media", "Dami ng statistical analysis na gagamitin sa kabanata apat"], a: 1, eng: "What is the meaning of Feasibility in topic selection?" },
+                    { q: "Alin sa mga sumusunod ang HINDI katangian ng isang mahusay na paksa?", o: ["May sapat na kaugnay na literatura", "Interesado ang mananaliksik dito", "Masyadong malawak at walang hangganang sakop ng panahon at lunan", "May pakinabang sa komunidad o paaralan"], a: 2, eng: "Which of the following is NOT a characteristic of a good topic?" }
+                ]
+            },
+            {
+                title: "Istasyon 2: Rebyu ng Kaugnay na Literatura (RRL)",
+                color: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
+                accent: "#0ea5e9",
+                slides: [
+                    { t: "Kahalagahan ng RRL", c: "Ang Review of Related Literature ang nagsisilbing akademikong pundasyon ng iyong tesis. Ipinapakita nito ang mga nakaraang pag-aaral at mga teorya na nagpapatunay na ang iyong paksa ay may pang-agham na batayan.", v: "📚", eng: "Importance of RRL. The Review of Related Literature serves as the academic foundation of your thesis. It presents past studies and theories proving your topic has a scientific basis." },
+                    { t: "Etika at Plagiarism", c: "Ang plagiarism ay ang sadyang pagkopya ng ideya o gawa ng iba nang walang kaukulang pagkilala. Sa pananaliksik, ito ay itinuturing na isang mabigat na krimeng akademiko na may kaukulang parusa.", v: "⚖️", eng: "Ethics and Plagiarism. Plagiarism is intentionally copying someone else's work or ideas without proper acknowledgment. In research, this is considered a serious academic offense with heavy penalties." },
+                    { t: "Estilo ng Sitasyon (APA Format)", c: "Upang maiwasan ang plagiarism, gumamit ng tamang in-text citation. Ang APA 7th Edition ang pinakagamitin sa agham panlipunan. Halimbawa ng Parenthetical format ay bukas na panaklong, apelyido, kuwit, taon, sarang panaklong.", v: "📝", eng: "Citation Style or APA Format. To avoid plagiarism, use correct in-text citations. APA 7th Edition is the most commonly used in social sciences. An example of parenthetical format is open parenthesis, surname, comma, year, close parenthesis." },
+                    { t: "Ang Konsepto ng Synthesis", c: "Ang mahusay na RRL ay hindi lamang simpleng pagdugtong-dugtong ng mga sinabi ng iba't ibang awtor. Ito ay isang kritikal na pagsasama-sama ng mga ideya upang ipakita ang pagkakatulad at pagkakaiba ng mga nakaraang pag-aaral.", v: "🧩", eng: "The Concept of Synthesis. A great RRL is not just a simple stringing together of what different authors said. It is a critical integration of ideas to highlight similarities and differences among past studies." },
+                    { t: "Pagtukoy sa Research Gap", c: "Ang pangunahing layunin ng RRL ay mahanap ang Research Gap o ang puwang sa kaalaman na hindi pa nasasagot ng mga nakaraang pag-aaral. Dito papasok ang halaga ng iyong bagong pananaliksik.", v: "🕳️", eng: "Identifying the Research Gap. The main purpose of RRL is to find the research gap, or the missing piece of knowledge unanswered by previous studies. This is where the value of your new research comes in." }
+                ],
+                quiz: [
+                    { q: "Ano ang pangunahing layunin ng pagbuo ng Kaugnay na Literatura (RRL)?", o: ["Pahabain ang pahina upang maging makapal tingnan ang tesis", "Magbigay ng matibay na konteksto at akademikong basehan mula sa mga naunang eksperto", "Palitan ang sariling opinyon ng mananaliksik ng opinyon ng iba", "Ipakita ang listahan ng lahat ng librong nabili sa bookstore"], a: 1, eng: "What is the primary objective of creating a Review of Related Literature?" },
+                    { q: "Ano ang tawag sa krimen ng paggamit ng gawa o ideya ng iba nang walang pahintulot o pagkilala?", o: ["Plagiarism", "Libel", "Intellectual Infringement Only", "Copyright Infraction Only"], a: 0, eng: "What is the term for using someone else's work or ideas without permission or recognition?" },
+                    { q: "Ayon sa APA 7th Edition, alin ang tamang format ng in-text citation?", o: ["(Santos, Hulyo 2026)", "(Santos, 2026)", "(Santos, pp. 15)", "Santos (2026, p. 5)"], a: 1, eng: "According to APA 7th Edition, which is the correct format for an in-text citation?" },
+                    { q: "Ano ang kahulugan ng 'Synthesis' sa pagsulat ng RRL?", o: ["Pagsasalin ng wikang Ingles patungong wikang Filipino", "Pagsasama-sama ng iba't ibang pag-aaral upang makabuo ng isang malinaw at nagkakaisang punto", "Pagkopya nang buong-buo sa talata ng isang artikulo", "Pagpuna sa maling gramatika ng mga naunang mananaliksik"], a: 1, eng: "What does Synthesis mean in writing the RRL?" },
+                    { q: "Ano ang tinutukoy ng 'Research Gap' sa pagbabasa ng literatura?", o: ["Ang distansya ng silid-aklatan sa bahay ng mananaliksik", "Ang kulang o hindi pa nasasagot na kaalaman sa mga nakaraang pag-aaral na pupunan ng iyong research", "Ang bilangan ng mga pahina na nawawala sa isang journal", "Ang hindi pagkakaunawaan ng mga panelist sa depensa"], a: 1, eng: "What does Research Gap refer to when reading literature?" }
+                ]
+            },
+            {
+                title: "Istasyon 3: Disenyo at Pamamaraan",
+                color: "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
+                accent: "#10b981",
+                slides: [
+                    { t: "Ang Blueprint", c: "Ang Metodolohiya ang nagsisilbing blueprint o eksaktong gabay kung PAANO isinagawa ang pananaliksik. Kung ang RRL ay naglalahad ng teorya, ang Metodolohiya naman ang sumasagot sa pisikal na hakbang.", v: "🗺️", eng: "The Blueprint. Methodology serves as the blueprint or the exact guide on how the research was conducted. While RRL presents the theory, Methodology answers the physical steps taken." },
+                    { t: "Disenyong Kwantitatibo", c: "Ang Kwantitatibong Pananaliksik ay nakatuon sa pagpapatunay ng hypothesis gamit ang mga numero, sukat, matematika, at estadistika. Gumagamit ito ng sarbey na talatanungan.", v: "📊", eng: "Quantitative Design. Quantitative research focuses on proving hypotheses using numbers, measurements, mathematics, and statistics. It commonly utilizes survey questionnaires." },
+                    { t: "Disenyong Kwalitatibo", c: "Ang Kwalitatibong Pananaliksik ay nakatuon sa malalim na pag-unawa sa karanasan, damdamin, at motibasyon ng tao gamit ang mga salita sa halip na numero, tulad ng interview.", v: "💬", eng: "Qualitative Design. Qualitative research focuses on a deep understanding of human experiences, feelings, and motivations using words instead of numbers, such as interviews." },
+                    { t: "Pamamaraan ng Pagpili o Sampling", c: "Nahahati ito sa dalawa: Probability Sampling kung saan lahat ay may pantay na pagkakataon, at Non-Probability Sampling kung saan pinipili base sa kraytirya gaya ng Purposive Sampling.", v: "👥", eng: "Sampling Methods. It is divided into two: Probability Sampling, where everyone has an equal chance, and Non-Probability Sampling, where participants are chosen based on criteria, like Purposive Sampling." },
+                    { t: "Reliability at Validity", c: "Validity ang tawag kung ang instrumento ay sumusukat talaga sa dapat nitong sukatin. Reliability naman kung ang instrumento ay nagbibigay ng parehong resulta kahit ulit-ulitin.", v: "🎯", eng: "Reliability and Validity. Validity means the instrument actually measures what it is intended to measure. Reliability means the instrument yields consistent results even when repeated." }
+                ],
+                quiz: [
+                    { q: "Anong disenyo ang angkop kung nais mong malaman ang eksaktong porsyento at statistical correlation ng dalawang variable?", o: ["Kwalitatibo", "Kwantitatibo", "Historikal", "Naratibo"], a: 1, eng: "Which design is appropriate if you want to find out the exact percentage and statistical correlation of two variables?" },
+                    { q: "Kung gagamit ka ng 'open-ended face-to-face interview' upang malaman ang emosyonal na karanasan ng mga working students, anong uri ito ng disenyo?", o: ["Kwantitatibo", "Kwalitatibo", "Eksperimental", "Sarbey"], a: 1, eng: "If you use an open-ended face-to-face interview to learn about the emotional experiences of working students, what type of design is this?" },
+                    { q: "Ano ang tawag sa representatibong grupo na pinili mula sa kabuuang populasyon upang sumagot sa instrumento?", o: ["Populasyon", "Sample", "Lunas", "Seksyon"], a: 1, eng: "What do you call the representative group chosen from the total population to answer the instrument?" },
+                    { q: "Anong sampling method ang ginagamit kung ang mga kalahok ay pinili nang sadya dahil pasok sila sa tiyak na kraytirya ng pag-aaral?", o: ["Simple Random Sampling", "Purposive Sampling", "Systematic Sampling", "Stratified Sampling"], a: 1, eng: "Which sampling method is used if participants are deliberately chosen because they fit specific criteria for the study?" },
+                    { q: "Bakit kailangang maging detalyado ang paglalahad ng metodolohiya?", o: ["Upang maging mukhang mahirap basahin ang tesis", "Upang maging 'replicable' o pwedeng maulit at mapatunayan ng ibang mananaliksik ang proseso", "Upang itago ang mga naging pagkakamali sa pagkolekta ng datos", "Upang hindi na kailangang magtanong ng mga panelist"], a: 1, eng: "Why does the presentation of the methodology need to be detailed?" }
+                ]
+            },
+            {
+                title: "Instrumento at Pagkakalap ng Datos",
+                color: "linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)",
+                accent: "#a855f7",
+                slides: [
+                    { t: "Ang Instrumento", c: "Ito ang kasangkapan sa pangangalap ng datos. Maaari itong sarbey na talatanungan para sa kwantitatibo, o gabay sa pakikipanayam para sa kwalitatibo.", v: "🛠️", eng: "The Research Instrument. This is the tool used for gathering data. It can be a survey questionnaire for quantitative data, or an interview guide for qualitative data." },
+                    { t: "Likert Scale", c: "Isang tanyag na scale na ginagamit sa mga sarbey upang sukatin ang antas ng pagsang-ayon o saloobin ng tao mula lubos na sumasang-ayon hanggang sa lubos na hindi sumasang-ayon.", v: "📈", eng: "The Likert Scale. A famous rating scale used in surveys to measure people's level of agreement or attitudes, ranging from strongly agree to strongly disagree." },
+                    { t: "Data Privacy Act (RA 10173)", c: "Sa pangangalap ng datos, batas na dapat protektahan ang personal na impormasyon ng mga kalahok. Kailangang dumaan sa Informed Consent kung saan boluntaryo silang papayag na sumagot.", v: "🔒", eng: "The Data Privacy Act. In data collection, it is a law that the personal information of participants must be protected. It requires Informed Consent, where they voluntarily agree to respond." },
+                    { t: "Proseso ng Data Collection", c: "Ang tamang proseso ay: Paghingi ng pahintulot sa pamunuan sa pamamagitan ng pormal na liham, oryentasyon sa mga kalahok, pamamahagi ng instrumento, at ligtas na pag-imbak ng mga sagot.", v: "📋", eng: "The Data Collection Process. The correct process includes: requesting permission from the administration via a formal letter, orienting participants, distributing the instruments, and safely storing the responses." },
+                    { t: "Expert Validation", c: "Bago ipamigay ang sarbey, kailangan muna itong ipasuri sa mga eksperto sa paksa upang masiguro na walang kalituhan sa mga tanong.", v: "👨‍🏫", eng: "Expert Validation. Before distributing the survey, it must first be reviewed by subject matter experts to ensure there is no confusion in the questions." }
+                ],
+                quiz: [
+                    { q: "Aling batas sa Pilipinas ang nag-aatas sa mga mananaliksik na protektahan ang kompidensyal na impormasyon ng mga respondents?", o: ["RA 9165", "RA 10173 (Data Privacy Act)", "RA 7610", "RA 1082"], a: 1, eng: "Which law in the Philippines mandates researchers to protect the confidential information of respondents?" },
+                    { q: "Ano ang tawag sa instrumento na naglalaman ng mga pre-determined choices na may scale tulad ng 'Strongly Agree' hanggang 'Strongly Disagree'?", o: ["Interview Transcript", "Likert-Scale Questionnaire", "Anecdotal Record", "Observation Checklist"], a: 1, eng: "What do you call an instrument that contains pre-determined choices with a scale like Strongly Agree to Strongly Disagree?" },
+                    { q: "Ano ang unang hakbang bago tuluyang ipasagutan ang sarbey sa mga mag-aaral sa loob ng isang paaralan?", o: ["I-print agad at ipamigay sa labas ng gate", "Gumawa at magpasa ng pormal na liham-pahintulot sa prinsipal o pamunuan", "I-post ang mga tanong sa Facebook", "Magbigay agad ng pre-test nang walang abiso"], a: 1, eng: "What is the first step before administering a survey to students inside a school?" },
+                    { q: "Ano ang ibig sabihin ng 'Informed Consent'?", o: ["Ang pagpilit sa kalahok na pumirma sa dokumento", "Ang boluntaryong pagpayag ng kalahok matapos maunawaan ang layunin at panganib ng pananaliksik", "Ang pagbabayad ng pera kapalit ng sagot", "Ang pagtatago ng totoong pangalan ng mananaliksik"], a: 1, eng: "What does Informed Consent mean?" },
+                    { q: "Bakit kailangang i-validate ang instrumento sa mga eksperto bago ang aktwal na pangangalap ng datos?", o: ["Upang makita kung maganda ang kulay ng printout", "Upang masiguro na ang mga tanong ay balido, malinaw, at walang bias o kalituhan", "Upang madagdagan ang bayad sa adviser", "Upang mapalitan ang paksa ng pananaliksik"], a: 1, eng: "Why do instruments need to be validated by experts before actual data collection?" }
+                ]
+            },
+            {
+                title: "Istasyon 5: Pagsusuri at Interpretasyon ng Datos",
+                color: "linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)",
+                accent: "#f43f5e",
+                slides: [
+                    { t: "Pagsusuri ng Datos", c: "Kapag nakalap na ang lahat ng talatanungan, ang mga sagot ay isasaayos at itatala. Sa kwantitatibo, gagamit tayo ng mga talahanayan o graphs upang ipakita ang pangkalahatang takbo.", v: "📊", eng: "Data Analysis. Once all questionnaires are gathered, responses are organized and tallied. In quantitative data, we use tables or graphs to display the overall trend." },
+                    { t: "Statistical Treatment", c: "Gagamitan ito ng angkop na estadistika. Ang pinakasimple ay ang Descriptive Statistics gaya ng frequency at Weighted Mean upang makuha ang pangkalahatang average.", v: "🧮", eng: "Statistical Treatment. Appropriate statistics will be applied. The simplest is descriptive statistics, such as frequency and weighted mean, to obtain the overall average." },
+                    { t: "Thematic Analysis", c: "Para naman sa kwalitatibong datos, gagamitin ang Tematikong Pagsusuri. Babasahin nang paulit-ulit ang mga transcript ng interview upang makabuo ng mga Tema o pattern mula sa mga sagot.", v: "🗂️", eng: "Thematic Analysis. For qualitative data, thematic analysis is used. Interview transcripts are read repeatedly to build themes or patterns from the responses." },
+                    { t: "Interpretasyon ng Datos", c: "Ang interpretasyon ay ang pagbibigay-buhay sa mga numero. Ipinapaliwanag dito kung BAKIT ganoon ang naging resulta at kung paano ito sumusuporta o sumasalungat sa mga teorya sa RRL.", v: "💡", eng: "Data Interpretation. Interpretation brings life to numbers. It explains why the results turned out that way and how they support or contradict theories in the RRL." },
+                    { t: "Lagom, Konklusyon at Rekomendasyon", c: "Ang Lagom ay maikling buod ng resulta. Ang Konklusyon ay ang direktang sagot sa iyong mga katanungan. Ang Rekomendasyon naman ay mga praktikal na mungkahi para sa paaralan o sa mga susunod pang mananaliksik.", v: "🏁", eng: "Summary, Conclusion, and Recommendations. The summary is a short overview of results. The conclusion directly answers your research questions. Recommendations provide practical suggestions for the school or future researchers." }
+                ],
+                quiz: [
+                    { q: "Anong statistical tool ang ginagamit upang makuha ang pangkalahatang average na tugon ng mga kalahok sa isang Likert scale?", o: ["Chi-Square Test", "Weighted Mean", "T-Test", "Analysis of Variance (ANOVA)"], a: 1, eng: "Which statistical tool is used to get the overall average response of participants on a Likert scale?" },
+                    { q: "Ano ang tawag sa paraan ng pagsusuri sa kwalitatibong pananaliksik na nagpapangkat-pangkat sa mga sagot ng ininterview batay sa mga pattern o tema?", o: ["Statistical Analysis", "Thematic Analysis", "Regression Analysis", "Frequency Distribution"], a: 1, eng: "What is the method of analysis in qualitative research that groups interview responses based on patterns or themes?" },
+                    { q: "Saan dapat ibatay ang pagsulat ng bahaging Konklusyon sa Kabanata 5?", o: ["Sa sariling hula at opinyon ng mananaliksik", "Sa mga direktang natuklasan ng datos at sa mga suliraning inihanay sa SOP", "Sa rekomendasyon ng mga panelist", "Sa pananaliksik ng ibang grupo sa ibang bansa"], a: 1, eng: "Where should the writing of the Conclusion in Chapter 5 be based?" },
+                    { q: "Ano ang tamang kahulugan ng 'Interpretasyon ng Datos'?", o: ["Ang pag-type muli ng mga numero sa isang Word document", "Ang pagpapaliwanag sa malalim na kahulugan, implikasyon, at dahilan sa likod ng nakalap na resulta", "Ang pagbura sa mga sagot na hindi pabor sa hypothesis", "Ang pagsulat ng biodata ng mananaliksik"], a: 1, eng: "What is the correct definition of Data Interpretation?" },
+                    { q: "Para kanino isinusulat ang bahagi ng Rekomendasyon (Recommendations)?", o: ["Para sa printer ng computer upang hindi masira", "Para sa mga sektor na makikinabang sa resulta at para sa mga susunod na mag-aaral na magpapatuloy sa pag-aaral", "Para sa mga nakaraang awtor na binasa sa RRL", "Para sa pamilya ng mananaliksik"], a: 1, eng: "For whom is the Recommendations section written?" }
+                ]
+            }
+        ];
+
+        // ENGINE APP STATE MACHINE
+        let gameState = {
+            unlockedStation: 0,
+            activeStation: null,
+            activeSlide: 0,
+            quizMode: false,
+            quizStep: 0,
+            name: "",
+            section: "",
+            tempQuizAnswers: {}
+        };
+
+        function handleRegistration() {
+            gameState.name = document.getElementById('regName').value.trim();
+            gameState.section = document.getElementById('regSection').value.trim();
+
+            if(!gameState.name || !gameState.section) {
+                playSound('wrong');
+                alert("⚠️ Mangyaring ipasok ang iyong Pangalan at Seksyon upang makalikha ng opisyal na rekord.");
+                return;
+            }
+            playSound('correct');
+            routeToMap();
+        }
+
+        function routeToMap() {
+            stopSpeaking();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-map').classList.add('active');
+            updateMapUI();
+        }
+
+        function updateMapUI() {
+            for(let i = 0; i <= 5; i++) {
+                const node = document.getElementById('node-' + i);
+                if(node) {
+                    node.className = 'map-node'; // Reset classes
+                    if(i < gameState.unlockedStation) {
+                        node.classList.add('completed');
+                        node.innerHTML = "✓" + `<div class="map-node-label">${getNodeLabelText(i)}</div>`;
+                    } else if (i === gameState.unlockedStation) {
+                        node.classList.add('unlocked');
+                        if(i === 5) {
+                            node.innerHTML = "🏆" + `<div class="map-node-label">Bundok ng Tagumpay</div>`;
+                        } else {
+                            node.innerHTML = (i + 1) + `<div class="map-node-label">${getNodeLabelText(i)}</div>`;
+                        }
+                    } else {
+                        if(i === 5) {
+                            node.innerHTML = "🏆" + `<div class="map-node-label">Naka-Lock pa</div>`;
+                        } else {
+                            node.innerHTML = (i + 1) + `<div class="map-node-label">Naka-Lock pa</div>`;
+                        }
+                    }
+                }
+            }
+        }
+
+        function getNodeLabelText(index) {
+            if(index === 0) return "Istasyon 1: Ang Paksa";
+            if(index === 1) return "Istasyon 2: Ang RRL";
+            if(index === 2) return "Istasyon 3: Metodolohiya";
+            if(index === 3) return "Istasyon 4: Pagsusuri";
+            if(index === 4) return "Istasyon 5: Lagom at Wakas";
+            return "Bundok ng Tagumpay";
+        }
+
+        function enterStation(index) {
+            if(index > gameState.unlockedStation) {
+                playSound('wrong');
+                alert("🔒 Ang istasyong ito ay kasalukuyang naka-lock. Kailangan mo munang kumpletuhin ang mga naunang antas!");
+                return;
+            }
+            playSound('click');
+            stopSpeaking();
+
+            if(index === 5) {
+                // Trigger Certificate Screen
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('cert-student-name').innerText = gameState.name;
+                document.getElementById('cert-section').innerText = gameState.section;
+                document.getElementById('screen-cert').classList.add('active');
+                
+                playSound('cert_fanfare');
+                return;
+            }
+
+            gameState.activeStation = index;
+            gameState.activeSlide = 0;
+            gameState.quizMode = false;
+            
+            // Dynamic theme assignment
+            document.documentElement.style.setProperty('--theme-bg', database[index].color);
+            document.documentElement.style.setProperty('--theme-accent', database[index].accent);
+
+            renderJourneyScreen();
+        }
+
+        function renderJourneyScreen() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            stopSpeaking(); 
+
+            const currentData = database[gameState.activeStation];
+            
+            const titleElement = document.getElementById('ui-station-title');
+            const progressElement = document.getElementById('ui-progress-tag');
+            const textElement = document.getElementById('ui-slide-text');
+            const visualElement = document.getElementById('ui-slide-visual');
+            const forwardBtn = document.getElementById('btn-forward');
+
+            if(!gameState.quizMode) {
+                // LESSON SLIDE VIEW
+                const slide = currentData.slides[gameState.activeSlide];
+                titleElement.innerText = currentData.title;
+                progressElement.innerText = `Slide ${gameState.activeSlide + 1} / 5`;
+                textElement.innerHTML = `<strong style="font-size:26px; color:var(--navy); display:block; margin-bottom:12px;">${slide.t}</strong><p>${slide.c}</p>`;
+                visualElement.innerText = slide.v;
+                forwardBtn.innerText = gameState.activeSlide === 4 ? "Magsimula ng Quiz 📝" : "Susunod ➡️";
+            } else {
+                // QUIZ QUESTION VIEW
+                const q = currentData.quiz[gameState.quizStep];
+                titleElement.innerText = `Pasulit: Istasyon ${gameState.activeStation + 1}`;
+                progressElement.innerText = `Tanong ${gameState.quizStep + 1} / 5`;
+                
+                let optionsHTML = q.o.map((opt, i) => {
+                    const isSelected = gameState.tempQuizAnswers[gameState.quizStep] === i ? 'selected' : '';
+                    return `<button class="quiz-option ${isSelected}" onmouseenter="playSound('hover')" onclick="selectQuizOption(${i})">${opt}</button>`;
+                }).join('');
+
+                textElement.innerHTML = `
+                    <div style="width:100%;">
+                        <p style="font-size:21px; font-weight:bold; margin-bottom:15px; color:var(--navy);">${gameState.quizStep + 1}. ${q.q}</p>
+                        <div class="options-grid">${optionsHTML}</div>
+                    </div>
+                `;
+                visualElement.innerText = "❓";
+                forwardBtn.innerText = gameState.quizStep === 4 ? "I-submit ang Pasulit 🏁" : "Susunod na Tanong ➡️";
+            }
+
+            document.getElementById('screen-journey').classList.add('active');
+        }
+
+        // MAHIWAGANG READ BUTTON NA NAGSASALITA NG INGLES
+        function readCurrentSlide() {
+            playSound('click');
+            const currentData = database[gameState.activeStation];
+
+            if(!gameState.quizMode) {
+                const slide = currentData.slides[gameState.activeSlide];
+                // Babasahin ang English translated data na nilagay ko sa database matrix sa itaas
+                speak(slide.eng);
+            } else {
+                const q = currentData.quiz[gameState.quizStep];
+                speak(`Question number ${gameState.quizStep + 1}. ${q.eng}`);
+            }
+        }
+
+        // CERTIFICATE READ BUTTON NA INLES NA DIN
+        function readCert() {
+            playSound('click');
+            const certSpeech = `Congratulations, ${gameState.name}, from section ${gameState.section}. This Certificate of Completion is proudly awarded to you for successfully completing and passing all levels of the Interactive Media Intervention Module in Research. Your dedication is truly impressive. Well done!`;
+            speak(certSpeech);
+        }
+
+        function handleForwardRoute() {
+            playSound('click');
+            const currentData = database[gameState.activeStation];
+
+            if(!gameState.quizMode) {
+                if(gameState.activeSlide < 4) {
+                    gameState.activeSlide++;
+                    renderJourneyScreen();
+                } else {
+                    gameState.quizMode = true;
+                    gameState.quizStep = 0;
+                    gameState.tempQuizAnswers = {};
+                    renderJourneyScreen();
+                }
+            } else {
+                if(gameState.tempQuizAnswers[gameState.quizStep] === undefined) {
+                    playSound('wrong');
+                    alert("⚠️ Pakisagutan muna ang kasalukuyang tanong bago magpatuloy.");
+                    return;
+                }
+
+                if(gameState.quizStep < 4) {
+                    gameState.quizStep++;
+                    renderJourneyScreen();
+                } else {
+                    evaluateQuizScore();
+                }
+            }
+        }
+
+        function handleBackRoute() {
+            playSound('click');
+            if(!gameState.quizMode) {
+                if(gameState.activeSlide > 0) {
+                    gameState.activeSlide--;
+                    renderJourneyScreen();
+                } else {
+                    routeToMap();
+                }
+            } else {
+                if(gameState.quizStep > 0) {
+                    gameState.quizStep--;
+                    renderJourneyScreen();
+                } else {
+                    gameState.quizMode = false;
+                    gameState.activeSlide = 4;
+                    renderJourneyScreen();
+                }
+            }
+        }
+
+        function selectQuizOption(optionIndex) {
+            playSound('click');
+            gameState.tempQuizAnswers[gameState.quizStep] = optionIndex;
+            
+            const buttons = document.querySelectorAll('.quiz-option');
+            buttons.forEach((btn, idx) => {
+                if (idx === optionIndex) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        function evaluateQuizScore() {
+            stopSpeaking();
+            const currentData = database[gameState.activeStation];
+            let score = 0;
+
+            currentData.quiz.forEach((item, idx) => {
+                if(gameState.tempQuizAnswers[idx] === item.a) {
+                    score++;
+                }
+            });
+
+            if(score === 5) {
+                playSound('correct');
+                alert(`🏆 Kamangha-manghang Gawain! Perpekto ang iyong marka (${score}/5). Tagumpay mong na-unlock ang susunod na bahagi ng mapa!`);
+                
+                if(gameState.activeStation === gameState.unlockedStation) {
+                    gameState.unlockedStation++;
+                }
+                routeToMap();
+            } else {
+                playSound('wrong');
+                alert(`❌ May mali sa iyong mga sagot (Marka: ${score}/5). Upang matiyak ang Mastery, kailangang makuha ang perpektong marka. Subukan nating muli ang pasulit!`);
+                gameState.quizStep = 0;
+                gameState.tempQuizAnswers = {};
+                renderJourneyScreen();
+            }
+        }
+    </script>
+</body>
+</html>
